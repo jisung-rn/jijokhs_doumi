@@ -1,0 +1,247 @@
+/* ========================= */
+/* 기본 설정 */
+/* ========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+}
+
+body {
+    background: #f3f5f9;
+    color: #333;
+    padding: 30px;
+}
+
+/* ========================= */
+/* 전체 레이아웃 */
+/* ========================= */
+.container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* ========================= */
+/* 상단 날짜 */
+/* ========================= */
+.header {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 25px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+.header h1 {
+    font-size: 34px;
+    font-weight: 700;
+}
+
+/* ========================= */
+/* 카드 배치 (3칸 균등 배치로 수정) */
+/* ========================= */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3개의 카드를 가로로 똑같이 배치 */
+    gap: 25px;
+}
+
+/* ========================= */
+/* 카드 */
+/* ========================= */
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+.card-title {
+    margin-bottom: 20px;
+}
+
+.card-title h2 {
+    font-size: 24px;
+}
+
+/* ========================= */
+/* 학년 반 선택 */
+/* ========================= */
+.selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.selector label {
+    font-weight: bold;
+}
+
+.selector select {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.selector button {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.selector button:hover {
+    background: #219150;
+}
+
+/* ========================= */
+/* 시간표 요소 */
+/* ========================= */
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background: #fafafa;
+    transition: .2s;
+}
+
+.item:hover {
+    background: #eef7ff;
+}
+
+.period {
+    width: 50px;
+    font-weight: bold;
+    color: #666;
+}
+
+.subject {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+}
+
+/* ========================= */
+/* 상태 배지 */
+/* ========================= */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 13px;
+}
+
+.done { background: #27ae60; }
+.progress { background: #3498db; }
+.wait { background: #f39c12; }
+
+/* ========================= */
+/* 급식 */
+/* ========================= */
+#meal {
+    line-height: 2;
+}
+
+#meal ul {
+    list-style: none;
+}
+
+#meal li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* ========================= */
+/* Todo */
+/* ========================= */
+.todo-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.todo-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+.todo-input button {
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    cursor: pointer;
+}
+
+.todo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa;
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.todo button {
+    border: none;
+    background: #e74c3c;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ========================= */
+/* 로딩 */
+/* ========================= */
+.loading {
+    text-align: center;
+    color: #888;
+    padding: 40px;
+}
+
+/* ========================= */
+/* 반응형 */
+/* ========================= */
+@media(max-width: 900px) {
+    body {
+        padding: 15px;
+    }
+    
+    .grid {
+        grid-template-columns: 1fr; /* 모바일에서는 무조건 세로로 한 줄 배치 */
+    }
+    
+    .header h1 {
+        font-size: 26px;
+    }
+    
+    .selector {
+        flex-direction: column;
+        align-items: stretch; /* 자식 요소들이 가로로 꽉 차게 변경 */
+    }
+    
+    .selector label {
+        margin-top: 5px;
+    }
+
+    .selector select,
+    .selector button {
+        width: 100%;
+    }
+}

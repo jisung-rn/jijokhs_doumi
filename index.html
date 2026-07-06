@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지족고등학교 대시보드</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <h1 id="today">날짜 불러오는 중...</h1>
+    </header>
+
+    <main class="grid">
+        <section class="card">
+            <div class="card-title">
+                <h2>📚 오늘 시간표</h2>
+            </div>
+            <div class="selector">
+                <label>학년</label>
+                <select id="grade">
+                    <option value="1">1학년</option>
+                    <option value="2" selected>2학년</option>
+                    <option value="3">3학년</option>
+                </select>
+
+                <label>반</label>
+                <select id="class">
+                    <option value="1">1반</option>
+                    <option value="2">2반</option>
+                    <option value="3" selected>3반</option>
+                    <option value="4">4반</option>
+                    <option value="5">5반</option>
+                    <option value="6">6반</option>
+                    <option value="7">7반</option>
+                    <option value="8">8반</option>
+                </select>
+                <button id="loadBtn">조회</button>
+            </div>
+            <div id="timetable">
+                <div class="loading">시간표를 불러오는 중...</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-title">
+                <h2>🍱 오늘 급식</h2>
+            </div>
+            <div id="meal">
+                <div class="loading">급식을 불러오는 중...</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-title">
+                <h2>✅ 오늘 할 일</h2>
+            </div>
+            <div class="todo-input">
+                <input id="todoText" type="text" placeholder="할 일을 입력하세요">
+                <button id="addTodo">추가</button>
+            </div>
+            <div id="todoList"></div>
+        </section>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
