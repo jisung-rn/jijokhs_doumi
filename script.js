@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (날짜 이동 기능 추가본)
+// 지족고등학교 대시보드 (날짜 이동 최종본)
 // script.js
 // ===============================
 
@@ -136,7 +136,7 @@ async function loadMeal() {
 }
 
 // -------------------------------
-// Todo 기능 (기존 유지)
+// Todo 기능
 // -------------------------------
 const todoInput = document.getElementById("todoText");
 const todoList = document.getElementById("todoList");
@@ -166,7 +166,7 @@ function createTodo(text) {
 
     div.appendChild(span);
     div.appendChild(btn);
-    todoList.appendChild(div);
+    if(todoList) todoList.appendChild(div);
 }
 
 function loadTodos() {
@@ -179,36 +179,44 @@ function loadTodos() {
 // -------------------------------
 // 이벤트 리스너 설정
 // -------------------------------
+if(addBtn && todoInput) {
+    addBtn.addEventListener("click", () => {
+        const text = todoInput.value.trim();
+        if (text === "") return;
+        createTodo(text);
+        saveTodos();
+        todoInput.value = "";
+    });
 
-// 할 일 추가 버튼 클릭
-addBtn.addEventListener("click", () => {
-    const text = todoInput.value.trim();
-    if (text === "") return;
-    createTodo(text);
-    saveTodos();
-    todoInput.value = "";
-});
+    todoInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            addBtn.click();
+        }
+    });
+}
 
-// 할 일 입력창 엔터키
-todoInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-        addBtn.click();
-    }
-});
+const loadBtn = document.getElementById("loadBtn");
+if(loadBtn) {
+    loadBtn.addEventListener("click", loadTimetable);
+}
 
-// 학년/반 변경 후 [조회] 버튼 클릭 시
-document.getElementById("loadBtn").addEventListener("click", loadTimetable);
+// 💎 날짜 이동 버튼 이벤트 리스너 안전하게 연결
+const prevBtn = document.getElementById("prevDateBtn");
+const nextBtn = document.getElementById("nextDateBtn");
 
-// 💎 날짜 이동 버튼 이벤트 리스너
-document.getElementById("prevDateBtn").addEventListener("click", () => {
-    currentDate.setDate(currentDate.getDate() - 1); // 하루 빼기
-    refreshDashboardData();
-});
+if(prevBtn) {
+    prevBtn.addEventListener("click", () => {
+        currentDate.setDate(currentDate.getDate() - 1); // 하루 빼기
+        refreshDashboardData();
+    });
+}
 
-document.getElementById("nextDateBtn").addEventListener("click", () => {
-    currentDate.setDate(currentDate.getDate() + 1); // 하루 더하기
-    refreshDashboardData();
-});
+if(nextBtn) {
+    nextBtn.addEventListener("click", () => {
+        currentDate.setDate(currentDate.getDate() + 1); // 하루 더하기
+        refreshDashboardData();
+    });
+}
 
 // -------------------------------
 // 최초 앱 실행
