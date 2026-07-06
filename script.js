@@ -8,11 +8,11 @@ const OFFICE_CODE = "G10";   // 대전광역시교육청
 const SCHOOL_CODE = "7430149"; // 대전지족고등학교
 
 // API 요청을 위한 오늘 날짜 구하기 (YYYYMMDD 형식)
-'const todayDate = new Date();
-'const yyyy = todayDate.getFullYear();
-'const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
-'const dd = String(todayDate.getDate()).padStart(2, '0');
-'const ymd = `${yyyy}${mm}${dd}`;
+//const todayDate = new Date();
+//const yyyy = todayDate.getFullYear();
+//const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+//const dd = String(todayDate.getDate()).padStart(2, '0');
+//const ymd = `${yyyy}${mm}${dd}`;
 const ymd = "20260617";
 
 // -------------------------------
