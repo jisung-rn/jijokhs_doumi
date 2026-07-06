@@ -5,7 +5,7 @@
 
 // 학교 정보 (대전지족고등학교)
 const OFFICE_CODE = "G10";   // 대전광역시교육청
-const SCHOOL_CODE = "7431102"; // 대전지족고등학교
+const SCHOOL_CODE = "7430149"; // 대전지족고등학교
 
 // API 요청을 위한 오늘 날짜 구하기 (YYYYMMDD 형식)
 const todayDate = new Date();
