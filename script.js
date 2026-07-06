@@ -1,25 +1,27 @@
 // ===============================
-// 지족고등학교 대시보드
-// script.js (완성본)
+// 지족고등학교 대시보드 (날짜 이동 기능 추가본)
+// script.js
 // ===============================
 
 // 학교 정보 (대전지족고등학교)
 const OFFICE_CODE = "G10";   // 대전광역시교육청
 const SCHOOL_CODE = "7430149"; // 대전지족고등학교
 
-// API 요청을 위한 오늘 날짜 구하기 (YYYYMMDD 형식)
-const todayDate = new Date();
-const yyyy = todayDate.getFullYear();
-const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
-const dd = String(todayDate.getDate()).padStart(2, '0');
-const ymd = `${yyyy}${mm}${dd}`;
+// 현재 대시보드가 보여주고 있는 기준 날짜 데이터 (기본값: 오늘)
+let currentDate = new Date();
 
+// 나이스 API 규격에 맞는 YYYYMMDD 문자열 생성 함수
+function getFormattedYmd(dateObj) {
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    return `${yyyy}${mm}${dd}`;
+}
 
 // -------------------------------
-// 오늘 날짜 표시
+// 상단 날짜 텍스트 업데이트
 // -------------------------------
-function updateDate() {
-    const now = new Date();
+function updateDateDisplay() {
     const formatter = new Intl.DateTimeFormat("ko-KR", {
         timeZone: "Asia/Seoul",
         year: "numeric",
@@ -27,7 +29,16 @@ function updateDate() {
         day: "numeric",
         weekday: "long"
     });
-    document.getElementById("today").textContent = formatter.format(now);
+    document.getElementById("today").textContent = formatter.format(currentDate);
+}
+
+// -------------------------------
+// 데이터 새로고침 (시간표 & 급식 동시 호출)
+// -------------------------------
+function refreshDashboardData() {
+    updateDateDisplay();
+    loadTimetable();
+    loadMeal();
 }
 
 // -------------------------------
@@ -37,10 +48,10 @@ async function loadTimetable() {
     const grade = document.getElementById("grade").value;
     const classNum = document.getElementById("class").value;
     const table = document.getElementById("timetable");
+    const ymd = getFormattedYmd(currentDate);
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
-    // 나이스 고등학교 시간표 개방 API 실제 주소 + CORS 우회 프록시 결합
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNum}`;
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
 
@@ -50,9 +61,8 @@ async function loadTimetable() {
 
         table.innerHTML = "";
 
-        // 나이스 API의 정상 데이터 검증 구조
         if (!data.hisTimetable) {
-            table.innerHTML = `<div class="loading">오늘 시간표가 없거나 주말입니다. 😴</div>`;
+            table.innerHTML = `<div class="loading">선택하신 날짜에 시간표가 없거나 주말입니다. 😴</div>`;
             return;
         }
 
@@ -76,9 +86,10 @@ async function loadTimetable() {
 // -------------------------------
 async function loadMeal() {
     const meal = document.getElementById("meal");
+    const ymd = getFormattedYmd(currentDate);
+    
     meal.innerHTML = "<div class='loading'>급식을 불러오는 중...</div>";
 
-    // 나이스 급식 개방 API 실제 주소 + CORS 우회 프록시 결합
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${ymd}`;
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
 
@@ -89,14 +100,13 @@ async function loadMeal() {
         meal.innerHTML = "";
 
         if (!data.mealServiceDietInfo) {
-            meal.innerHTML = `<div class="loading">오늘 급식이 없습니다. 🍳</div>`;
+            meal.innerHTML = `<div class="loading">선택하신 날짜에 급식이 없습니다. 🍳</div>`;
             return;
         }
 
         const ul = document.createElement("ul");
         let menuStr = data.mealServiceDietInfo[1].row[0].DDISH_NM;
         
-        // 나이스 데이터 특유의 요리 번호 지우고 줄바꿈(<br/>) 기준으로 쪼개기
         menuStr = menuStr.replace(/[0-9.()]/g, '');
         const foods = menuStr.split('<br/>');
 
@@ -109,7 +119,6 @@ async function loadMeal() {
         });
         meal.appendChild(ul);
 
-        // 칼로리 정보가 있다면 우측 정렬로 하단에 표시
         const calorieInfo = data.mealServiceDietInfo[1].row[0].CAL_INFO;
         if (calorieInfo) {
             const div = document.createElement("div");
@@ -127,7 +136,7 @@ async function loadMeal() {
 }
 
 // -------------------------------
-// Todo 기능
+// Todo 기능 (기존 유지)
 // -------------------------------
 const todoInput = document.getElementById("todoText");
 const todoList = document.getElementById("todoList");
@@ -167,7 +176,11 @@ function loadTodos() {
     });
 }
 
-// 이벤트 리스너 연결
+// -------------------------------
+// 이벤트 리스너 설정
+// -------------------------------
+
+// 할 일 추가 버튼 클릭
 addBtn.addEventListener("click", () => {
     const text = todoInput.value.trim();
     if (text === "") return;
@@ -176,18 +189,29 @@ addBtn.addEventListener("click", () => {
     todoInput.value = "";
 });
 
+// 할 일 입력창 엔터키
 todoInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
         addBtn.click();
     }
 });
 
+// 학년/반 변경 후 [조회] 버튼 클릭 시
 document.getElementById("loadBtn").addEventListener("click", loadTimetable);
 
+// 💎 날짜 이동 버튼 이벤트 리스너
+document.getElementById("prevDateBtn").addEventListener("click", () => {
+    currentDate.setDate(currentDate.getDate() - 1); // 하루 빼기
+    refreshDashboardData();
+});
+
+document.getElementById("nextDateBtn").addEventListener("click", () => {
+    currentDate.setDate(currentDate.getDate() + 1); // 하루 더하기
+    refreshDashboardData();
+});
+
 // -------------------------------
-// 처음 실행 (중복 호출 코드 정리)
+// 최초 앱 실행
 // -------------------------------
-updateDate();
-loadTimetable();
-loadMeal();
+refreshDashboardData();
 loadTodos();
