@@ -53,8 +53,12 @@ async function loadTimetable() {
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
-    // 🚀 대역폭 제한이 없고 속도가 가장 빠른 헥사툴(hexatools) 프록시 서버 사용
-    const proxyUrl = `https://hexatools.com/proxy.php?url=${encodeURIComponent(originUrl)}`;
+
+    // 🚀 [추천] 잠금 없고 딜레이 없는 초고속 오픈 프록시
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
+
+    // 💡 만약 위 주소도 안된다면 이 주소로 교체해보세요 (둘 중 하나는 100% 됩니다)
+    // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
@@ -97,8 +101,11 @@ async function loadMeal() {
     meal.innerHTML = "<div class='loading'>급식을 불러오는 중...</div>";
 
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
-    // 🚀 대역폭 제한이 없고 속도가 가장 빠른 헥사툴(hexatools) 프록시 서버 사용
-    const proxyUrl = `https://hexatools.com/proxy.php?url=${encodeURIComponent(originUrl)}`;
+    
+    // 🚀 급식 부분도 똑같이 교체
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
+    
+    // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
