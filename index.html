@@ -13,9 +13,16 @@
         <div class="date-container">
             <button id="prevDateBtn" class="date-btn">◀</button>
             
-            <div class="datepicker-wrapper" style="cursor: pointer;">
+            <div class="datepicker-wrapper" style="cursor: pointer; position: relative;">
                 <h1 id="today">날짜 불러오는 중...</h1>
-                <input type="date" id="datePicker" style="display: none;">
+                <input type="date" id="datePicker" style="
+                    position: absolute;
+                    width: 0;
+                    height: 0;
+                    opacity: 0;
+                    border: none;
+                    pointer-events: none;
+                ">
             </div>
             
             <button id="nextDateBtn" class="date-btn">▶</button>
