@@ -252,46 +252,50 @@ if (nextBtn) {
 }
 
 // -----------------------------------------------------------
-// 💎 [최종 마스터] PC 및 모바일 달력 차단 완벽 우회 로직
+// 💎 [모바일 완벽 해제] PC 및 모바일 달력 차단 해제 최종 본
 // -----------------------------------------------------------
 const datePicker = document.getElementById("datePicker");
 const wrapper = document.querySelector(".datepicker-wrapper");
 
 if (wrapper && datePicker) {
-    // 달력을 열어주는 핵심 실행 함수
-    const openCalendar = (e) => {
-        e.preventDefault(); // 모바일 더블 액션 및 이벤트 버블링 차단
-        e.stopPropagation();
-        
+    // 1️⃣ PC 사용자를 위한 클릭 이벤트 (중복 방지 포함)
+    wrapper.addEventListener("click", (e) => {
+        e.preventDefault();
         try {
             if (typeof datePicker.showPicker === 'function') {
-                datePicker.showPicker(); // 최신 브라우저 표준 강제 오픈
+                datePicker.showPicker();
             } else {
-                datePicker.click(); // 구형 브라우저 호환용
+                datePicker.click();
             }
         } catch (err) {
-            console.error("달력 호출 실패:", err);
+            console.error("PC 달력 호출 실패:", err);
         }
-    };
+    });
 
-    // 1️⃣ PC 사용자를 위한 마우스 클릭 리스너
-    wrapper.addEventListener("click", openCalendar);
+    // 2️⃣ 모바일 사용자를 위한 터치 이벤트 (보안 엔진 차단 우회용 순정 터치 전달)
+    wrapper.addEventListener("touchstart", (e) => {
+        // ⚠️ 모바일 보안 우회를 위해 e.preventDefault()를 절대 호출하지 않습니다.
+        try {
+            if (typeof datePicker.showPicker === 'function') {
+                datePicker.showPicker(); // 사용자의 순정 터치에 반응하여 즉시 오픈
+            } else {
+                datePicker.click();
+            }
+        } catch (err) {
+            console.error("모바일 달력 호출 실패:", err);
+        }
+    });
 
-    // 2️⃣ 모바일 사용자를 위한 터치 스타트 리스너 (보안 우회 핵심)
-    wrapper.addEventListener("touchstart", openCalendar, { passive: false });
-
-    // 3️⃣ 사용자가 달력에서 날짜를 변경 완료했을 때
+    // 3️⃣ 달력 날짜 변경 시 데이터 새로고침
     datePicker.addEventListener("change", (e) => {
         if (e.target.value) {
             const selectedDate = new Date(e.target.value);
-            // 주말이면 평일로 자동 점프
-            adjustToWeekday(selectedDate, 1);
+            adjustToWeekday(selectedDate, 1); // 주말 선택 시 평일 보정
             currentDate = selectedDate;
             refreshDashboardData();
         }
     });
 }
-
 // -------------------------------
 // 최초 앱 실행
 // -------------------------------
