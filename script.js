@@ -252,50 +252,23 @@ if (nextBtn) {
 }
 
 // -----------------------------------------------------------
-// 💎 [모바일 완벽 해제] PC 및 모바일 달력 차단 해제 최종 본
+// 💎 [크로스 플랫폼 최종본] 달력 날짜 변경 감지 및 데이터 동기화
 // -----------------------------------------------------------
 const datePicker = document.getElementById("datePicker");
-const wrapper = document.querySelector(".datepicker-wrapper");
 
-if (wrapper && datePicker) {
-    // 1️⃣ PC 사용자를 위한 클릭 이벤트 (중복 방지 포함)
-    wrapper.addEventListener("click", (e) => {
-        e.preventDefault();
-        try {
-            if (typeof datePicker.showPicker === 'function') {
-                datePicker.showPicker();
-            } else {
-                datePicker.click();
-            }
-        } catch (err) {
-            console.error("PC 달력 호출 실패:", err);
-        }
-    });
-
-    // 2️⃣ 모바일 사용자를 위한 터치 이벤트 (보안 엔진 차단 우회용 순정 터치 전달)
-    wrapper.addEventListener("touchstart", (e) => {
-        // ⚠️ 모바일 보안 우회를 위해 e.preventDefault()를 절대 호출하지 않습니다.
-        try {
-            if (typeof datePicker.showPicker === 'function') {
-                datePicker.showPicker(); // 사용자의 순정 터치에 반응하여 즉시 오픈
-            } else {
-                datePicker.click();
-            }
-        } catch (err) {
-            console.error("모바일 달력 호출 실패:", err);
-        }
-    });
-
-    // 3️⃣ 달력 날짜 변경 시 데이터 새로고침
+if (datePicker) {
+    // 사용자가 달력(PC/모바일/패드)에서 날짜를 최종 선택했을 때 실행
     datePicker.addEventListener("change", (e) => {
         if (e.target.value) {
             const selectedDate = new Date(e.target.value);
-            adjustToWeekday(selectedDate, 1); // 주말 선택 시 평일 보정
+            // 달력으로 선택한 날 역시 주말이면 자동으로 가장 가까운 평일로 조정
+            adjustToWeekday(selectedDate, 1);
             currentDate = selectedDate;
             refreshDashboardData();
         }
     });
 }
+
 // -------------------------------
 // 최초 앱 실행
 // -------------------------------
