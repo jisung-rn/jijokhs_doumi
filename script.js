@@ -35,10 +35,11 @@ function updateDateDisplay() {
 // -------------------------------
 // 데이터 새로고침 (시간표 & 급식 동시 호출)
 // -------------------------------
-function refreshDashboardData() {
+// 기존 함수를 지우고 아래처럼 async를 붙여서 순서대로 실행되게 만듭니다.
+async function refreshDashboardData() {
     updateDateDisplay();
-    loadTimetable();
-    loadMeal();
+    await loadTimetable(); // 시간표 호출이 완전히 끝날 때까지 기다림
+    await loadMeal();      // 그 다음 급식 호출
 }
 
 // -------------------------------
@@ -221,5 +222,13 @@ if(nextBtn) {
 // -------------------------------
 // 최초 앱 실행
 // -------------------------------
-refreshDashboardData();
+// 맨 밑에 그냥 실행되던 부분을 아래와 같이 수정해 줍니다.
+updateDateDisplay();
+
+// 초기 데이터 로드도 순서대로 실행되도록 안전하게 묶어줍니다.
+(async () => {
+    await loadTimetable();
+    await loadMeal();
+})();
+
 loadTodos();
