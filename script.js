@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (최종 안정화 버전)
+// 지족고등학교 대시보드 (석식 추가 버전)
 // script.js
 // ===============================
 
@@ -38,29 +38,27 @@ function updateDateDisplay() {
 function refreshDashboardData() {
     updateDateDisplay();
     loadTimetable();
-    loadMeal();
+    loadMeals();
 }
 
 // -------------------------------
-// 시간표 조회
+// 시간표 조회 (월요일 1교시 예외 및 최대 7교시 제한)
 // -------------------------------
 async function loadTimetable() {
     const grade = document.getElementById("grade").value;
     const classNum = document.getElementById("class").value;
     const table = document.getElementById("timetable");
     const targetYmd = getFormattedYmd(currentDate);
+    const dayOfWeek = currentDate.getDay(); // 1: 월요일, 2: 화요일 ...
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
-    // 🚀 Type=json 대신 나이스 서버가 가장 안전하게 뱉어주는 정석 origin 주소 사용
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
-    // 🚀 가장 대역폭이 넓고 유서 깊은 allorigins 전용 파서 주소로 안정성 100% 확보
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
         const resData = await response.json();
-        // allorigins 프록시는 실제 데이터를 contents라는 문자열 안에 담아 뱉으므로 이를 JSON화
         const data = JSON.parse(resData.contents);
 
         if (targetYmd !== getFormattedYmd(currentDate)) return;
@@ -72,15 +70,32 @@ async function loadTimetable() {
             return;
         }
 
-        const rows = data.hisTimetable[1].row;
+        let rows = data.hisTimetable[1].row;
+
+        // 월요일(1)이면 1교시 데이터 제외하기
+        if (dayOfWeek === 1) {
+            rows = rows.filter(subject => parseInt(subject.PERIO) !== 1);
+        }
+
+        let displayCount = 0;
+
         rows.forEach(subject => {
-            table.innerHTML += `
-            <div class="item">
-                <span class="period">${subject.PERIO}교시</span>
-                <span class="subject">${subject.ITRT_CNTNT}</span>
-            </div>
-            `;
+            const period = parseInt(subject.PERIO);
+            if (period <= 7 && displayCount < 7) {
+                table.innerHTML += `
+                <div class="item">
+                    <span class="period">${period}교시</span>
+                    <span class="subject">${subject.ITRT_CNTNT}</span>
+                </div>
+                `;
+                displayCount++;
+            }
         });
+
+        if (displayCount === 0) {
+            table.innerHTML = `<div class="loading">표시할 시간표 데이터가 없습니다.</div>`;
+        }
+
     } catch (error) {
         console.error(error);
         if (targetYmd === getFormattedYmd(currentDate)) {
@@ -90,13 +105,15 @@ async function loadTimetable() {
 }
 
 // -------------------------------
-// 급식 조회
+// 급식 조회 (중식 & 석식 통합 처리)
 // -------------------------------
-async function loadMeal() {
-    const meal = document.getElementById("meal");
+async function loadMeals() {
+    const lunchContainer = document.getElementById("mealLunch");
+    const dinnerContainer = document.getElementById("mealDinner");
     const targetYmd = getFormattedYmd(currentDate);
     
-    meal.innerHTML = "<div class='loading'>급식을 불러오는 중...</div>";
+    lunchContainer.innerHTML = "<div class='loading'>중식을 불러오는 중...</div>";
+    dinnerContainer.innerHTML = "<div class='loading'>석식을 불러오는 중...</div>";
 
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
@@ -108,107 +125,82 @@ async function loadMeal() {
 
         if (targetYmd !== getFormattedYmd(currentDate)) return;
 
-        meal.innerHTML = "";
+        lunchContainer.innerHTML = "";
+        dinnerContainer.innerHTML = "";
 
         if (!data || !data.mealServiceDietInfo) {
-            meal.innerHTML = `<div class="loading">선택하신 날짜에 급식이 없습니다. 🍳</div>`;
+            const emptyMsg = `<div class="loading">선택하신 날짜에 급식이 없습니다. 🍳</div>`;
+            lunchContainer.innerHTML = emptyMsg;
+            dinnerContainer.innerHTML = emptyMsg;
             return;
         }
 
-        const ul = document.createElement("ul");
-        let menuStr = data.mealServiceDietInfo[1].row[0].DDISH_NM;
+        const rows = data.mealServiceDietInfo[1].row;
         
-        menuStr = menuStr.replace(/[0-9.()]/g, '');
-        const foods = menuStr.split('<br/>');
+        let hasLunch = false;
+        let hasDinner = false;
 
-        foods.forEach(food => {
-            if (food.trim()) {
-                const li = document.createElement("li");
-                li.textContent = "🍚 " + food.trim();
-                ul.appendChild(li);
+        rows.forEach(mealRow => {
+            const mealCode = mealRow.MMEAL_SC_CODE; // 2: 중식, 3: 석식
+            
+            // 메뉴 가공 처리
+            let menuStr = mealRow.DDISH_NM;
+            menuStr = menuStr.replace(/[0-9.()]/g, '');
+            const foods = menuStr.split('<br/>');
+
+            const ul = document.createElement("ul");
+            foods.forEach(food => {
+                if (food.trim()) {
+                    const li = document.createElement("li");
+                    li.textContent = "🍚 " + food.trim();
+                    ul.appendChild(li);
+                }
+            });
+
+            // 칼로리 정보 추가
+            const calorieInfo = mealRow.CAL_INFO;
+            if (calorieInfo) {
+                const div = document.createElement("div");
+                div.style.marginTop = "15px";
+                div.style.fontWeight = "bold";
+                div.style.textAlign = "right";
+                div.style.color = "#666";
+                div.style.fontSize = "13px";
+                div.textContent = "🔥 " + calorieInfo;
+                ul.appendChild(div);
+            }
+
+            // 코드에 맞게 꽂아넣기
+            if (mealCode === "2") {
+                lunchContainer.appendChild(ul);
+                hasLunch = true;
+            } else if (mealCode === "3") {
+                dinnerContainer.appendChild(ul);
+                hasDinner = true;
             }
         });
-        meal.appendChild(ul);
 
-        const calorieInfo = data.mealServiceDietInfo[1].row[0].CAL_INFO;
-        if (calorieInfo) {
-            const div = document.createElement("div");
-            div.style.marginTop = "20px";
-            div.style.fontWeight = "bold";
-            div.style.textAlign = "right";
-            div.style.color = "#666";
-            div.textContent = "🔥 총 열량: " + calorieInfo;
-            meal.appendChild(div);
+        // 급식은 있는데 둘 중 하나가 비어있을 때 예외 문구 처리
+        if (!hasLunch) {
+            lunchContainer.innerHTML = `<div class="loading">등록된 중식이 없습니다. 😴</div>`;
         }
+        if (!hasDinner) {
+            dinnerContainer.innerHTML = `<div class="loading">등록된 석식이 없습니다. 😴</div>`;
+        }
+
     } catch (error) {
         console.error(error);
         if (targetYmd === getFormattedYmd(currentDate)) {
-            meal.innerHTML = `<div class="loading">급식을 불러오지 못했습니다.</div>`;
+            const errorMsg = `<div class="loading">급식을 불러오지 못했습니다.</div>`;
+            lunchContainer.innerHTML = errorMsg;
+            dinnerContainer.innerHTML = errorMsg;
         }
     }
 }
 
 // -------------------------------
-// Todo 기능
-// -------------------------------
-const todoInput = document.getElementById("todoText");
-const todoList = document.getElementById("todoList");
-const addBtn = document.getElementById("addTodo");
-
-function saveTodos() {
-    const todos = [];
-    if (!todoList) return;
-    todoList.querySelectorAll(".todo span").forEach(item => {
-        todos.push(item.textContent);
-    });
-    localStorage.setItem("todos", JSON.stringify(todos));
-}
-
-function createTodo(text) {
-    const div = document.createElement("div");
-    div.className = "todo";
-
-    const span = document.createElement("span");
-    span.textContent = text;
-
-    const btn = document.createElement("button");
-    btn.textContent = "삭제";
-    btn.onclick = function () {
-        div.remove();
-        saveTodos();
-    };
-
-    div.appendChild(span);
-    div.appendChild(btn);
-    if (todoList) todoList.appendChild(div);
-}
-
-function loadTodos() {
-    const todos = JSON.parse(localStorage.getItem("todos") || "[]");
-    todos.forEach(todo => {
-        createTodo(todo);
-    });
-}
-
-// -------------------------------
 // 이벤트 리스너 설정
 // -------------------------------
-if (addBtn && todoInput) {
-    addBtn.addEventListener("click", () => {
-        const text = todoInput.value.trim();
-        if (text === "") return;
-        createTodo(text);
-        saveTodos();
-        todoInput.value = "";
-    });
-
-    todoInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            addBtn.click();
-        }
-    });
-}
-
 const loadBtn = document.getElementById("loadBtn");
 if (loadBtn) {
     loadBtn.addEventListener("click", loadTimetable);
@@ -235,4 +227,3 @@ if (nextBtn) {
 // 최초 앱 실행
 // -------------------------------
 refreshDashboardData();
-loadTodos();
