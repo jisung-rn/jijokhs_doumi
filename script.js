@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (주말 스킵 + 달력 선택 버전)
+// 지족고등학교 대시보드 (주말 스킵 + 모바일 완벽 호환 달력 버전)
 // script.js
 // ===============================
 
@@ -47,7 +47,7 @@ function updateDateDisplay() {
     });
     document.getElementById("today").textContent = formatter.format(currentDate);
 
-    // 숨겨진 input[type=date]의 값도 현재 날짜 포맷(YYYY-MM-DD)으로 갱신
+    // 투명하게 겹쳐진 input[type=date]의 값도 현재 날짜 포맷(YYYY-MM-DD)으로 갱신
     const picker = document.getElementById("datePicker");
     if (picker) {
         const yyyy = currentDate.getFullYear();
@@ -251,15 +251,10 @@ if (nextBtn) {
     });
 }
 
-// 💎 [추가] 날짜 텍스트 클릭 시 달력 창 띄우기
-const todayText = document.getElementById("today");
+// 💎 [모바일 완벽 호환 버전] 투명 달력 날짜 변경 이벤트 연동
 const datePicker = document.getElementById("datePicker");
 
-if (todayText && datePicker) {
-    todayText.addEventListener("click", () => {
-        datePicker.showPicker(); // 브라우저 고유 달력 팝업 강제 오픈
-    });
-
+if (datePicker) {
     // 달력에서 날짜를 변경했을 때 처리
     datePicker.addEventListener("change", (e) => {
         if (e.target.value) {
