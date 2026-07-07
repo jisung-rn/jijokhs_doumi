@@ -12,7 +12,12 @@
     <header class="header">
         <div class="date-container">
             <button id="prevDateBtn" class="date-btn">◀</button>
-            <h1 id="today">날짜 불러오는 중...</h1>
+            
+            <div class="datepicker-wrapper">
+                <h1 id="today" style="cursor: pointer;">날짜 불러오는 중...</h1>
+                <input type="date" id="datePicker" style="display: none;">
+            </div>
+            
             <button id="nextDateBtn" class="date-btn">▶</button>
         </div>
     </header>
