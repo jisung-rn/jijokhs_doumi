@@ -197,35 +197,3 @@ body {
     font-size: 14px;
     padding: 40px 0;
 }
-
-/* ==========================================
-   [추가] 모바일/PC 달력 터치 영역 완벽 고정 스타일
-   ========================================== */
-.datepicker-wrapper {
-    min-width: 260px; /* 기존 h1에 있던 최소 너비를 상위 상자로 이동 */
-    justify-content: center;
-}
-
-.datepicker-wrapper h1 {
-    min-width: auto !important; /* 기존 h1 너비 제한 해제 */
-    width: 100%;
-}
-
-/* 투명 달력 인풋이 영역을 100% 차지하게 강제하고 기본 외곽선 제거 */
-#datePicker {
-    -webkit-appearance: none; /* 모바일 브라우저 기본 서식 제거 */
-    -moz-appearance: none;
-    appearance: none;
-    background: transparent;
-}
-
-/* 캘린더 아이콘이 나타나서 레이아웃을 깨뜨리는 현상 방지 */
-#datePicker::-webkit-calendar-picker-indicator {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    opacity: 0; /* 아이콘도 완벽히 투명화 */
-}
