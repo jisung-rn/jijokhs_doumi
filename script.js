@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (최종 안정화 버전)
+// 지족고등학교 대시보드 (최종 초고속 안정화 버전)
 // script.js
 // ===============================
 
@@ -53,8 +53,8 @@ async function loadTimetable() {
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
-    // 💎 잠금 장치가 없어 무조건 뚫리는 공용 프록시(codetabs) 사용
-    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(originUrl)}`;
+    // 🚀 대역폭 제한이 없고 속도가 가장 빠른 헥사툴(hexatools) 프록시 서버 사용
+    const proxyUrl = `https://hexatools.com/proxy.php?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
@@ -97,8 +97,8 @@ async function loadMeal() {
     meal.innerHTML = "<div class='loading'>급식을 불러오는 중...</div>";
 
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
-    // 💎 잠금 장치가 없어 무조건 뚫리는 공용 프록시(codetabs) 사용
-    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(originUrl)}`;
+    // 🚀 대역폭 제한이 없고 속도가 가장 빠른 헥사툴(hexatools) 프록시 서버 사용
+    const proxyUrl = `https://hexatools.com/proxy.php?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
