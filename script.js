@@ -55,10 +55,10 @@ async function loadTimetable() {
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
 
     // 🚀 [추천] 잠금 없고 딜레이 없는 초고속 오픈 프록시
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
+    //const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
 
     // 💡 만약 위 주소도 안된다면 이 주소로 교체해보세요 (둘 중 하나는 100% 됩니다)
-    // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
@@ -103,9 +103,9 @@ async function loadMeal() {
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
     
     // 🚀 급식 부분도 똑같이 교체
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
+    //const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
     
-    // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
