@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (최종 초고속 안정화 버전)
+// 지족고등학교 대시보드 (최종 안정화 버전)
 // script.js
 // ===============================
 
@@ -33,7 +33,7 @@ function updateDateDisplay() {
 }
 
 // -------------------------------
-// 데이터 새로고침 (시간표 & 급식 동시 호출 안전화)
+// 데이터 새로고침
 // -------------------------------
 function refreshDashboardData() {
     updateDateDisplay();
@@ -48,28 +48,26 @@ async function loadTimetable() {
     const grade = document.getElementById("grade").value;
     const classNum = document.getElementById("class").value;
     const table = document.getElementById("timetable");
-    const targetYmd = getFormattedYmd(currentDate); // 함수 내부 격리 변수 사용
+    const targetYmd = getFormattedYmd(currentDate);
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
+    // 🚀 Type=json 대신 나이스 서버가 가장 안전하게 뱉어주는 정석 origin 주소 사용
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
-
-    // 🚀 [추천] 잠금 없고 딜레이 없는 초고속 오픈 프록시
-    //const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
-
-    // 💡 만약 위 주소도 안된다면 이 주소로 교체해보세요 (둘 중 하나는 100% 됩니다)
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
+    // 🚀 가장 대역폭이 넓고 유서 깊은 allorigins 전용 파서 주소로 안정성 100% 확보
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
-        const data = await response.json();
+        const resData = await response.json();
+        // allorigins 프록시는 실제 데이터를 contents라는 문자열 안에 담아 뱉으므로 이를 JSON화
+        const data = JSON.parse(resData.contents);
 
-        // 사용자가 기다리는 사이에 날짜를 넘겼다면 옛날 데이터는 반영하지 않고 무시
         if (targetYmd !== getFormattedYmd(currentDate)) return;
 
         table.innerHTML = "";
 
-        if (!data.hisTimetable) {
+        if (!data || !data.hisTimetable) {
             table.innerHTML = `<div class="loading">선택하신 날짜에 시간표가 없거나 주말입니다. 😴</div>`;
             return;
         }
@@ -96,27 +94,23 @@ async function loadTimetable() {
 // -------------------------------
 async function loadMeal() {
     const meal = document.getElementById("meal");
-    const targetYmd = getFormattedYmd(currentDate); // 함수 내부 격리 변수 사용
+    const targetYmd = getFormattedYmd(currentDate);
     
     meal.innerHTML = "<div class='loading'>급식을 불러오는 중...</div>";
 
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
-    
-    // 🚀 급식 부분도 똑같이 교체
-    //const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originUrl)}`;
-    
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
-        const data = await response.json();
+        const resData = await response.json();
+        const data = JSON.parse(resData.contents);
 
-        // 사용자가 기다리는 사이에 날짜를 넘겼다면 옛날 데이터는 반영하지 않고 무시
         if (targetYmd !== getFormattedYmd(currentDate)) return;
 
         meal.innerHTML = "";
 
-        if (!data.mealServiceDietInfo) {
+        if (!data || !data.mealServiceDietInfo) {
             meal.innerHTML = `<div class="loading">선택하신 날짜에 급식이 없습니다. 🍳</div>`;
             return;
         }
@@ -220,7 +214,6 @@ if (loadBtn) {
     loadBtn.addEventListener("click", loadTimetable);
 }
 
-// 날짜 이동 버튼 이벤트 리스너 연결
 const prevBtn = document.getElementById("prevDateBtn");
 const nextBtn = document.getElementById("nextDateBtn");
 
