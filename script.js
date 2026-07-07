@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (날짜 이동 최종본)
+// 지족고등학교 대시보드 (최종 안정화 버전)
 // script.js
 // ===============================
 
@@ -33,13 +33,12 @@ function updateDateDisplay() {
 }
 
 // -------------------------------
-// 데이터 새로고침 (시간표 & 급식 동시 호출)
+// 데이터 새로고침 (시간표 & 급식 동시 호출 안전화)
 // -------------------------------
-// 기존 함수를 지우고 아래처럼 async를 붙여서 순서대로 실행되게 만듭니다.
-async function refreshDashboardData() {
+function refreshDashboardData() {
     updateDateDisplay();
-    await loadTimetable(); // 시간표 호출이 완전히 끝날 때까지 기다림
-    await loadMeal();      // 그 다음 급식 호출
+    loadTimetable();
+    loadMeal();
 }
 
 // -------------------------------
@@ -49,16 +48,20 @@ async function loadTimetable() {
     const grade = document.getElementById("grade").value;
     const classNum = document.getElementById("class").value;
     const table = document.getElementById("timetable");
-    const ymd = getFormattedYmd(currentDate);
+    const targetYmd = getFormattedYmd(currentDate); // 함수 내부 격리 변수 사용
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
-    const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${ymd}&GRADE=${grade}&CLASS_NM=${classNum}`;
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
+    const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
+    // 💎 잠금 장치가 없어 무조건 뚫리는 공용 프록시(codetabs) 사용
+    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
         const data = await response.json();
+
+        // 사용자가 기다리는 사이에 날짜를 넘겼다면 옛날 데이터는 반영하지 않고 무시
+        if (targetYmd !== getFormattedYmd(currentDate)) return;
 
         table.innerHTML = "";
 
@@ -78,7 +81,9 @@ async function loadTimetable() {
         });
     } catch (error) {
         console.error(error);
-        table.innerHTML = `<div class="loading">시간표를 가져오지 못했습니다.</div>`;
+        if (targetYmd === getFormattedYmd(currentDate)) {
+            table.innerHTML = `<div class="loading">시간표를 가져오지 못했습니다.</div>`;
+        }
     }
 }
 
@@ -87,16 +92,20 @@ async function loadTimetable() {
 // -------------------------------
 async function loadMeal() {
     const meal = document.getElementById("meal");
-    const ymd = getFormattedYmd(currentDate);
+    const targetYmd = getFormattedYmd(currentDate); // 함수 내부 격리 변수 사용
     
     meal.innerHTML = "<div class='loading'>급식을 불러오는 중...</div>";
 
-    const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${ymd}`;
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originUrl)}`;
+    const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
+    // 💎 잠금 장치가 없어 무조건 뚫리는 공용 프록시(codetabs) 사용
+    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(originUrl)}`;
 
     try {
         const response = await fetch(proxyUrl);
         const data = await response.json();
+
+        // 사용자가 기다리는 사이에 날짜를 넘겼다면 옛날 데이터는 반영하지 않고 무시
+        if (targetYmd !== getFormattedYmd(currentDate)) return;
 
         meal.innerHTML = "";
 
@@ -132,7 +141,9 @@ async function loadMeal() {
         }
     } catch (error) {
         console.error(error);
-        meal.innerHTML = `<div class="loading">급식을 불러오지 못했습니다.</div>`;
+        if (targetYmd === getFormattedYmd(currentDate)) {
+            meal.innerHTML = `<div class="loading">급식을 불러오지 못했습니다.</div>`;
+        }
     }
 }
 
@@ -145,7 +156,8 @@ const addBtn = document.getElementById("addTodo");
 
 function saveTodos() {
     const todos = [];
-    document.querySelectorAll(".todo span").forEach(item => {
+    if (!todoList) return;
+    todoList.querySelectorAll(".todo span").forEach(item => {
         todos.push(item.textContent);
     });
     localStorage.setItem("todos", JSON.stringify(todos));
@@ -167,7 +179,7 @@ function createTodo(text) {
 
     div.appendChild(span);
     div.appendChild(btn);
-    if(todoList) todoList.appendChild(div);
+    if (todoList) todoList.appendChild(div);
 }
 
 function loadTodos() {
@@ -180,7 +192,7 @@ function loadTodos() {
 // -------------------------------
 // 이벤트 리스너 설정
 // -------------------------------
-if(addBtn && todoInput) {
+if (addBtn && todoInput) {
     addBtn.addEventListener("click", () => {
         const text = todoInput.value.trim();
         if (text === "") return;
@@ -197,24 +209,24 @@ if(addBtn && todoInput) {
 }
 
 const loadBtn = document.getElementById("loadBtn");
-if(loadBtn) {
+if (loadBtn) {
     loadBtn.addEventListener("click", loadTimetable);
 }
 
-// 💎 날짜 이동 버튼 이벤트 리스너 안전하게 연결
+// 날짜 이동 버튼 이벤트 리스너 연결
 const prevBtn = document.getElementById("prevDateBtn");
 const nextBtn = document.getElementById("nextDateBtn");
 
-if(prevBtn) {
+if (prevBtn) {
     prevBtn.addEventListener("click", () => {
-        currentDate.setDate(currentDate.getDate() - 1); // 하루 빼기
+        currentDate.setDate(currentDate.getDate() - 1);
         refreshDashboardData();
     });
 }
 
-if(nextBtn) {
+if (nextBtn) {
     nextBtn.addEventListener("click", () => {
-        currentDate.setDate(currentDate.getDate() + 1); // 하루 더하기
+        currentDate.setDate(currentDate.getDate() + 1);
         refreshDashboardData();
     });
 }
@@ -222,13 +234,5 @@ if(nextBtn) {
 // -------------------------------
 // 최초 앱 실행
 // -------------------------------
-// 맨 밑에 그냥 실행되던 부분을 아래와 같이 수정해 줍니다.
-updateDateDisplay();
-
-// 초기 데이터 로드도 순서대로 실행되도록 안전하게 묶어줍니다.
-(async () => {
-    await loadTimetable();
-    await loadMeal();
-})();
-
+refreshDashboardData();
 loadTodos();
