@@ -10,11 +10,11 @@
 
 <div class="container">
     <header class="header">
-        <div class="date-container">
+        <div class="date-container" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
             <button id="prevDateBtn" class="date-btn">◀</button>
             
-            <div class="datepicker-wrapper" style="position: relative; display: inline-block;">
-                <h1 id="today" style="margin: 0; pointer-events: none;">날짜 불러오는 중...</h1>
+            <div class="datepicker-wrapper" style="position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                <h1 id="today" style="margin: 0; pointer-events: none; user-select: none;">날짜 불러오는 중...</h1>
                 <input type="date" id="datePicker" style="
                     position: absolute;
                     top: 0;
@@ -26,6 +26,8 @@
                     margin: 0;
                     padding: 0;
                     border: none;
+                    z-index: 10;
+                    display: block !important;
                 ">
             </div>
             
