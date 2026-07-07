@@ -1,247 +1,199 @@
-/* ========================= */
-/* 기본 설정 */
-/* ========================= */
+/* ===============================
+   지족고등학교 대시보드 스타일시트
+   style.css
+   =============================== */
+
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
 body {
-    background: #f3f5f9;
-    color: #333;
-    padding: 30px;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-/* ========================= */
-/* 전체 레이아웃 */
-/* ========================= */
 .container {
+    width: 100%;
     max-width: 1200px;
-    margin: auto;
 }
 
-/* ========================= */
-/* 상단 날짜 */
-/* ========================= */
+/* 날짜 선택 헤더 스타일 */
 .header {
-    background: #fff;
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 25px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+    margin-bottom: 24px;
 }
 
-.header h1 {
-    font-size: 34px;
+.date-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    background: #ffffff;
+    padding: 12px 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.date-container h1 {
+    font-size: 20px;
     font-weight: 700;
+    color: #334155;
+    min-width: 260px;
+    text-align: center;
 }
 
-/* ========================= */
-/* 카드 배치 (3칸 균등 배치로 수정) */
-/* ========================= */
+.date-btn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.date-btn:hover {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+    transform: scale(1.05);
+}
+
+/* 그리드 레이아웃 (세 개의 카드 균형 배치) */
 .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3개의 카드를 가로로 똑같이 배치 */
-    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
 }
 
-/* ========================= */
-/* 카드 */
-/* ========================= */
 .card {
-    background: white;
+    background: #ffffff;
     border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+    padding: 24px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
 }
 
 .card-title {
     margin-bottom: 20px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 12px;
 }
 
 .card-title h2 {
-    font-size: 24px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
 }
 
-/* ========================= */
-/* 학년 반 선택 */
-/* ========================= */
+/* 상단 학년/반 셀렉터 */
 .selector {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 12px;
 }
 
 .selector label {
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
 }
 
 .selector select {
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: white;
+    font-size: 13px;
+    outline: none;
     cursor: pointer;
 }
 
-.selector button {
-    background: #27ae60;
+#loadBtn {
+    padding: 6px 14px;
+    background: #3b82f6;
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    transition: .2s;
+    transition: background 0.2s;
+    margin-left: auto;
 }
 
-.selector button:hover {
-    background: #219150;
+#loadBtn:hover {
+    background: #2563eb;
 }
 
-/* ========================= */
-/* 시간표 요소 */
-/* ========================= */
+/* 시간표 및 아이템 디자인 */
+#timetable, #mealLunch, #mealDinner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+}
+
 .item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    margin-bottom: 10px;
+    background: #f8fafc;
+    padding: 12px 16px;
     border-radius: 12px;
-    background: #fafafa;
-    transition: .2s;
-}
-
-.item:hover {
-    background: #eef7ff;
+    border-left: 4px solid #3b82f6;
 }
 
 .period {
-    width: 50px;
-    font-weight: bold;
-    color: #666;
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    margin-right: 16px;
+    min-width: 45px;
 }
 
 .subject {
-    flex: 1;
-    text-align: left;
+    font-size: 15px;
     font-weight: 600;
+    color: #1e293b;
 }
 
-/* ========================= */
-/* 상태 배지 */
-/* ========================= */
-.badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    color: white;
-    font-size: 13px;
-}
-
-.done { background: #27ae60; }
-.progress { background: #3498db; }
-.wait { background: #f39c12; }
-
-/* ========================= */
-/* 급식 */
-/* ========================= */
-#meal {
-    line-height: 2;
-}
-
-#meal ul {
+/* 급식 리스트 스타일 공통 */
+#mealLunch ul, #mealDinner ul {
     list-style: none;
-}
-
-#meal li {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-/* ========================= */
-/* Todo */
-/* ========================= */
-.todo-input {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.todo-input input {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #ccc;
+#mealLunch li, #mealDinner li {
+    background: #f8fafc;
+    padding: 10px 14px;
     border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
 }
 
-.todo-input button {
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 20px;
-    cursor: pointer;
-}
-
-.todo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fafafa;
-    margin-bottom: 10px;
-    padding: 12px;
-    border-radius: 10px;
-}
-
-.todo button {
-    border: none;
-    background: #e74c3c;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* ========================= */
-/* 로딩 */
-/* ========================= */
 .loading {
     text-align: center;
-    color: #888;
-    padding: 40px;
-}
-
-/* ========================= */
-/* 반응형 */
-/* ========================= */
-@media(max-width: 900px) {
-    body {
-        padding: 15px;
-    }
-    
-    .grid {
-        grid-template-columns: 1fr; /* 모바일에서는 무조건 세로로 한 줄 배치 */
-    }
-    
-    .header h1 {
-        font-size: 26px;
-    }
-    
-    .selector {
-        flex-direction: column;
-        align-items: stretch; /* 자식 요소들이 가로로 꽉 차게 변경 */
-    }
-    
-    .selector label {
-        margin-top: 5px;
-    }
-
-    .selector select,
-    .selector button {
-        width: 100%;
-    }
+    color: #94a3b8;
+    font-size: 14px;
+    padding: 40px 0;
 }
