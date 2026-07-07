@@ -13,8 +13,9 @@
         <div class="date-container" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
             <button id="prevDateBtn" class="date-btn">◀</button>
             
-            <div class="datepicker-wrapper" style="position: relative; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; min-width: 260px;">
-                <h1 id="today" style="margin: 0; pointer-events: none; user-select: none; width: 100%; text-align: center;">날짜 불러오는 중...</h1>
+            <div class="datepicker-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; min-width: 260px; height: 45px; overflow: visible;">
+                
+                <h1 id="today" style="margin: 0; padding: 0; pointer-events: none; user-select: none; text-align: center; width: 100%; line-height: 45px; white-space: nowrap;">날짜 불러오는 중...</h1>
                 
                 <input type="date" id="datePicker" style="
                     position: absolute;
@@ -27,7 +28,7 @@
                     margin: 0;
                     padding: 0;
                     border: none;
-                    z-index: 10;
+                    z-index: 9999 !important;
                     display: block !important;
                     -webkit-appearance: none;
                 ">
@@ -94,4 +95,3 @@
 <script src="script.js"></script>
 </body>
 </html>
-
