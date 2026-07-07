@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (나이스 다이렉트 고속 버전)
+// 지족고등학교 대시보드 (나이스 다이렉트 고속 + 틀 고정 버전)
 // script.js
 // ===============================
 
@@ -45,7 +45,7 @@ function refreshDashboardData() {
 }
 
 // -------------------------------
-// 시간표 조회 (월요일 1교시 예외 및 최대 7교시 제한)
+// 시간표 조회 (1~7교시 틀 고정 및 데이터 매핑)
 // -------------------------------
 async function loadTimetable() {
     const table = document.getElementById("timetable");
@@ -71,41 +71,48 @@ async function loadTimetable() {
         if (targetYmd !== getFormattedYmd(currentDate)) return;
         table.innerHTML = "";
 
-        if (!data || !data.hisTimetable) {
-            table.innerHTML = `<div class="loading">선택하신 날짜에 시간표가 없거나 주말입니다. 😴</div>`;
-            return;
+        // 💎 1교시부터 7교시까지의 과목을 담을 빈 배열 생성 (1번 인덱스 ~ 7번 인덱스 사용)
+        const dailySubjects = Array(8).fill("-"); 
+
+        // 나이스 API 데이터가 정상적으로 들어온 경우에만 배열에 과목 매핑
+        if (data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row) {
+            const rows = data.hisTimetable[1].row;
+            rows.forEach(subject => {
+                const period = parseInt(subject.PERIO);
+                if (period >= 1 && period <= 7) {
+                    dailySubjects[period] = subject.ITRT_CNTNT; // 해당 교시에 과목명 저장
+                }
+            });
         }
 
-        let rows = data.hisTimetable[1].row;
-
-        // 월요일(1)이면 1교시 데이터 제외하기
+        // 💎 [특수성 처리] 월요일(1)이면 1교시는 데이터가 있어도 강제로 '-' 처리
         if (dayOfWeek === 1) {
-            rows = rows.filter(subject => parseInt(subject.PERIO) !== 1);
+            dailySubjects[1] = "-";
         }
 
-        let displayCount = 0;
-
-        rows.forEach(subject => {
-            const period = parseInt(subject.PERIO);
-            if (period <= 7 && displayCount < 7) {
-                table.innerHTML += `
-                <div class="item">
-                    <span class="period">${period}교시</span>
-                    <span class="subject">${subject.ITRT_CNTNT}</span>
-                </div>
-                `;
-                displayCount++;
-            }
-        });
-
-        if (displayCount === 0) {
-            table.innerHTML = `<div class="loading">표시할 시간표 데이터가 없습니다.</div>`;
+        // 💎 데이터 유무와 상관없이 1교시부터 7교시까지 무조건 화면에 틀을 그림
+        for (let period = 1; period <= 7; period++) {
+            table.innerHTML += `
+            <div class="item">
+                <span class="period">${period}교시</span>
+                <span class="subject">${dailySubjects[period]}</span>
+            </div>
+            `;
         }
 
     } catch (error) {
         console.error(error);
         if (targetYmd === getFormattedYmd(currentDate)) {
-            table.innerHTML = `<div class="loading">시간표를 가져오지 못했습니다.</div>`;
+            // 에러가 나거나 네트워크가 불안정해도 틀이 깨지지 않게 1~7교시 빈 틀을 출력
+            table.innerHTML = "";
+            for (let period = 1; period <= 7; period++) {
+                table.innerHTML += `
+                <div class="item">
+                    <span class="period">${period}교시</span>
+                    <span class="subject">-</span>
+                </div>
+                `;
+            }
         }
     }
 }
