@@ -252,33 +252,39 @@ if (nextBtn) {
 }
 
 // -----------------------------------------------------------
-// 💎 [최종 활성화] PC(클릭) 및 모바일(터치) 달력 팝업 완벽 우회 이벤트 리스너
+// 💎 [최종 마스터] PC 및 모바일 달력 차단 완벽 우회 로직
 // -----------------------------------------------------------
 const datePicker = document.getElementById("datePicker");
 const wrapper = document.querySelector(".datepicker-wrapper");
 
 if (wrapper && datePicker) {
-    // 사용자가 날짜를 터치/클릭했을 때 보안 차단을 우회하여 달력을 실행시키는 함수
+    // 달력을 열어주는 핵심 실행 함수
     const openCalendar = (e) => {
-        e.preventDefault(); // 더블 클릭 및 중복 실행 방지
-        if (typeof datePicker.showPicker === 'function') {
-            datePicker.showPicker(); // 최신 브라우저 순정 달력 강제 오픈
-        } else {
-            datePicker.click(); // 구형 브라우저 대응용 포백
+        e.preventDefault(); // 모바일 더블 액션 및 이벤트 버블링 차단
+        e.stopPropagation();
+        
+        try {
+            if (typeof datePicker.showPicker === 'function') {
+                datePicker.showPicker(); // 최신 브라우저 표준 강제 오픈
+            } else {
+                datePicker.click(); // 구형 브라우저 호환용
+            }
+        } catch (err) {
+            console.error("달력 호출 실패:", err);
         }
     };
 
-    // 1️⃣ PC 사용자를 위한 클릭 이벤트 등록
+    // 1️⃣ PC 사용자를 위한 마우스 클릭 리스너
     wrapper.addEventListener("click", openCalendar);
 
-    // 2️⃣ 모바일 스마트폰 환경에서 차단 벽을 뚫기 위한 직관적인 터치 이벤트 등록
+    // 2️⃣ 모바일 사용자를 위한 터치 스타트 리스너 (보안 우회 핵심)
     wrapper.addEventListener("touchstart", openCalendar, { passive: false });
 
-    // 3️⃣ 사용자가 달력에서 날짜 조정을 완료했을 때 데이터 동기화
+    // 3️⃣ 사용자가 달력에서 날짜를 변경 완료했을 때
     datePicker.addEventListener("change", (e) => {
         if (e.target.value) {
             const selectedDate = new Date(e.target.value);
-            // 달력으로 선택한 날 역시 주말이면 자동으로 가장 가까운 평일로 조정
+            // 주말이면 평일로 자동 점프
             adjustToWeekday(selectedDate, 1);
             currentDate = selectedDate;
             refreshDashboardData();
