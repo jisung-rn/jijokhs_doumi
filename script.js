@@ -1,5 +1,5 @@
 // ===============================
-// 지족고등학교 대시보드 (초고속 안정화 버전)
+// 지족고등학교 대시보드 (심플 안정화 버전)
 // script.js
 // ===============================
 
@@ -9,10 +9,6 @@ const SCHOOL_CODE = "7430149"; // 대전지족고등학교
 
 // 현재 대시보드가 보여주고 있는 기준 날짜 데이터 (기본값: 오늘)
 let currentDate = new Date();
-
-// 💎 날짜 이동 시 이전 중복 요청을 취소하여 무한 로딩을 막는 컨트롤러
-let timetableController = null;
-let mealController = null;
 
 // 나이스 API 규격에 맞는 YYYYMMDD 문자열 생성 함수
 function getFormattedYmd(dateObj) {
@@ -49,27 +45,25 @@ function refreshDashboardData() {
 // 시간표 조회 (월요일 1교시 예외 및 최대 7교시 제한)
 // -------------------------------
 async function loadTimetable() {
-    // 💎 요소가 아직 로드되지 않았을 경우를 대비해 기본값 안전장치 마련
+    const table = document.getElementById("timetable");
+    if (!table) return;
+
+    // 💎 학년/반 엘리먼트가 없거나 값을 못 읽으면 기본값(2학년 3반) 적용
     const gradeEl = document.getElementById("grade");
     const classEl = document.getElementById("class");
-    const grade = gradeEl ? gradeEl.value : "2";
-    const classNum = classEl ? classEl.value : "3";
+    const grade = (gradeEl && gradeEl.value) ? gradeEl.value : "2";
+    const classNum = (classEl && classEl.value) ? classEl.value : "3";
     
-    const table = document.getElementById("timetable");
     const targetYmd = getFormattedYmd(currentDate);
     const dayOfWeek = currentDate.getDay(); // 1: 월요일, 2: 화요일 ...
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
-    // 💎 이전 요청이 남아있으면 강제로 취소해서 병목현상 제거
-    if (timetableController) timetableController.abort();
-    timetableController = new AbortController();
-
     const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
 
     try {
-        const response = await fetch(proxyUrl, { signal: timetableController.signal });
+        const response = await fetch(proxyUrl);
         const resData = await response.json();
         const data = JSON.parse(resData.contents);
 
@@ -108,7 +102,6 @@ async function loadTimetable() {
         }
 
     } catch (error) {
-        if (error.name === 'AbortError') return; // 취소된 요청은 에러 처리 안 함
         console.error(error);
         if (targetYmd === getFormattedYmd(currentDate)) {
             table.innerHTML = `<div class="loading">시간표를 가져오지 못했습니다.</div>`;
@@ -122,20 +115,18 @@ async function loadTimetable() {
 async function loadMeals() {
     const lunchContainer = document.getElementById("mealLunch");
     const dinnerContainer = document.getElementById("mealDinner");
+    if (!lunchContainer || !dinnerContainer) return;
+
     const targetYmd = getFormattedYmd(currentDate);
     
     lunchContainer.innerHTML = "<div class='loading'>중식을 불러오는 중...</div>";
     dinnerContainer.innerHTML = "<div class='loading'>석식을 불러오는 중...</div>";
 
-    // 💎 이전 급식 요청이 끝나지 않았다면 취소해서 랙 방지
-    if (mealController) mealController.abort();
-    mealController = new AbortController();
-
     const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
 
     try {
-        const response = await fetch(proxyUrl, { signal: mealController.signal });
+        const response = await fetch(proxyUrl);
         const resData = await response.json();
         const data = JSON.parse(resData.contents);
 
@@ -201,7 +192,6 @@ async function loadMeals() {
         }
 
     } catch (error) {
-        if (error.name === 'AbortError') return;
         console.error(error);
         if (targetYmd === getFormattedYmd(currentDate)) {
             const errorMsg = `<div class="loading">급식을 불러오지 못했습니다.</div>`;
@@ -237,8 +227,6 @@ if (nextBtn) {
 }
 
 // -------------------------------
-// 최초 앱 실행 (DOM이 모두 구성된 뒤 호출하도록 보장)
+// 최초 앱 실행
 // -------------------------------
-window.addEventListener("DOMContentLoaded", () => {
-    refreshDashboardData();
-});
+refreshDashboardData();
