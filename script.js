@@ -1,7 +1,10 @@
 // ===============================
-// 지족고등학교 대시보드 (심플 안정화 버전)
+// 지족고등학교 대시보드 (나이스 다이렉트 고속 버전)
 // script.js
 // ===============================
+
+// 💎 나이스에서 발급받은 인증키를 따옴표 안에 넣어주세요!
+const API_KEY = "55a6304ce0b141288aa279f1f788fe14"; 
 
 // 학교 정보 (대전지족고등학교)
 const OFFICE_CODE = "G10";   // 대전광역시교육청
@@ -48,7 +51,6 @@ async function loadTimetable() {
     const table = document.getElementById("timetable");
     if (!table) return;
 
-    // 💎 학년/반 엘리먼트가 없거나 값을 못 읽으면 기본값(2학년 3반) 적용
     const gradeEl = document.getElementById("grade");
     const classEl = document.getElementById("class");
     const grade = (gradeEl && gradeEl.value) ? gradeEl.value : "2";
@@ -59,13 +61,12 @@ async function loadTimetable() {
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
-    const originUrl = `https://open.neis.go.kr/hub/hisTimetable?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
+    // 🚀 프록시 없이 KEY를 붙여 나이스 서버에 다이렉트로 초고속 요청
+    const directUrl = `https://open.neis.go.kr/hub/hisTimetable?KEY=${API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&ALL_TI_YMD=${targetYmd}&GRADE=${grade}&CLASS_NM=${classNum}`;
 
     try {
-        const response = await fetch(proxyUrl);
-        const resData = await response.json();
-        const data = JSON.parse(resData.contents);
+        const response = await fetch(directUrl);
+        const data = await response.json();
 
         if (targetYmd !== getFormattedYmd(currentDate)) return;
         table.innerHTML = "";
@@ -122,13 +123,12 @@ async function loadMeals() {
     lunchContainer.innerHTML = "<div class='loading'>중식을 불러오는 중...</div>";
     dinnerContainer.innerHTML = "<div class='loading'>석식을 불러오는 중...</div>";
 
-    const originUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originUrl)}`;
+    // 🚀 급식도 프록시 없이 KEY를 붙여 다이렉트 요청
+    const directUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&MLSV_YMD=${targetYmd}`;
 
     try {
-        const response = await fetch(proxyUrl);
-        const resData = await response.json();
-        const data = JSON.parse(resData.contents);
+        const response = await fetch(directUrl);
+        const data = await response.json();
 
         if (targetYmd !== getFormattedYmd(currentDate)) return;
 
