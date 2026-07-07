@@ -13,19 +13,24 @@
         <div class="date-container" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
             <button id="prevDateBtn" class="date-btn">◀</button>
             
-            <div class="datepicker-wrapper" style="position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
+            <div class="datepicker-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; min-width: 260px; height: 45px; overflow: visible;">
                 
-                <h1 id="today" style="margin: 0; user-select: none; text-align: center;">날짜 불러오는 중...</h1>
-                
-                <label for="datePicker" style="cursor: pointer; font-size: 24px; user-select: none; display: inline-block;">📅</label>
+                <h1 id="today" style="margin: 0; padding: 0; pointer-events: none; user-select: none; text-align: center; width: 100%; line-height: 45px; white-space: nowrap;">날짜 불러오는 중...</h1>
                 
                 <input type="date" id="datePicker" style="
                     position: absolute;
-                    width: 0;
-                    height: 0;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
                     opacity: 0;
+                    cursor: pointer;
+                    margin: 0;
+                    padding: 0;
                     border: none;
-                    pointer-events: none;
+                    z-index: 9999 !important;
+                    display: block !important;
+                    -webkit-appearance: none;
                 ">
             </div>
             
