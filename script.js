@@ -102,8 +102,8 @@ async function loadTimetable() {
                 const period = parseInt(subject.PERIO);
                 const name = subject.ITRT_CNTNT; // 과목명
                 
-                if (period === 1) p1 = name;
-                else if (period === 2) p2 = name;
+                if (period === 1) p1 = 진로;
+                else if (period === 2) p2 = 미적;
                 else if (period === 3) p3 = name;
                 else if (period === 4) p4 = name;
                 else if (period === 5) p5 = name;
