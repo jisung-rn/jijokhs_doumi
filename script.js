@@ -180,7 +180,7 @@ async function loadMeals() {
             foods.forEach(food => {
                 if (food.trim()) {
                     const li = document.createElement("li");
-                    li.textContent = "🍚 " + food.trim();
+                    li.textContent = "🍲 " + food.trim();
                     ul.appendChild(li);
                 }
             });
