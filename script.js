@@ -93,7 +93,7 @@ async function loadTimetable() {
         table.innerHTML = "";
 
         // 1. 교시별 데이터를 저장할 빈 변수들을 선언합니다. 기본값은 없음을 뜻하는 "-" 입니다.
-        let p1 = "진로", p2 = "-", p3 = "-", p4 = "-", p5 = "-", p6 = "-", p7 = "-";
+        let p1 = "-", p2 = "-", p3 = "-", p4 = "-", p5 = "-", p6 = "-", p7 = "-";
 
         // 2. API에서 가져온 데이터를 각각의 변수에 하나씩 맞춰 매핑합니다.
         if (data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row) {
@@ -106,7 +106,7 @@ async function loadTimetable() {
                 else if (period === 2) p2 = name;
                 else if (period === 3) p3 = name;
                 else if (period === 4) p4 = name;
-                else if (period === 5) p5 = name;
+                else if (period === 5) p5 = "진로";
                 else if (period === 6) p6 = name;
                 else if (period === 7) p7 = name;
             });
