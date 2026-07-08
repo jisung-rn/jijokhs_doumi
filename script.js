@@ -67,7 +67,7 @@ function refreshDashboardData() {
 }
 
 // -------------------------------
-// 시간표 조회 (🔥 1~7교시 개별 매핑 및 제어 구조)
+// 시간표 조회 (요일별 빈값 '선택' 자동 매핑 구조)
 // -------------------------------
 async function loadTimetable() {
     const table = document.getElementById("timetable");
@@ -79,7 +79,7 @@ async function loadTimetable() {
     const classNum = (classEl && classEl.value) ? classEl.value : "3";
     
     const targetYmd = getFormattedYmd(currentDate);
-    const dayOfWeek = currentDate.getDay(); // 1: 월요일, 2: 화요일 ...
+    const dayOfWeek = currentDate.getDay(); // 1: 월요일, 2: 화요일, 3: 수요일, 4: 목요일, 5: 금요일
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
@@ -92,10 +92,10 @@ async function loadTimetable() {
         if (targetYmd !== getFormattedYmd(currentDate)) return;
         table.innerHTML = "";
 
-        // 1. 교시별 데이터를 저장할 빈 변수들을 선언합니다. 기본값은 없음을 뜻하는 "-" 입니다.
+        // 1. 교시별 기본값을 없음을 뜻하는 "-" 로 세팅
         let p1 = "-", p2 = "-", p3 = "-", p4 = "-", p5 = "-", p6 = "-", p7 = "-";
 
-        // 2. API에서 가져온 데이터를 각각의 변수에 하나씩 맞춰 매핑합니다.
+        // 2. API 데이터 매핑
         if (data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row) {
             const rows = data.hisTimetable[1].row;
             rows.forEach(subject => {
@@ -106,19 +106,46 @@ async function loadTimetable() {
                 else if (period === 2) p2 = name;
                 else if (period === 3) p3 = name;
                 else if (period === 4) p4 = name;
-                else if (period === 5) p5 = "진로";
+                else if (period === 5) p5 = name;
                 else if (period === 6) p6 = name;
                 else if (period === 7) p7 = name;
             });
         }
 
-        // 월요일 1교시 강제 공백 기존 조건 유지
+        // 월요일 1교시는 고정 공백 처리 규칙 유지
         if (dayOfWeek === 1) {
             p1 = "-";
         }
 
-        // 3. ⭐️ 1교시부터 7교시까지 하나하나 직접 개별 코딩하여 화면을 채웁니다.
-        // 여기에 특정 교시에만 스타일을 주거나 조건문을 추가하는 가공 코딩이 가능합니다!
+        // 3. ✨ [핵심] 요일별 빈값(" - ") 처리 로직 정의
+        if (dayOfWeek === 1) { 
+            // 월요일: 2~7교시 중 빈값을 '선택'으로 변경 (1교시는 제외)
+            if (p2 === "-") p2 = "선택";
+            if (p3 === "-") p3 = "선택";
+            if (p4 === "-") p4 = "선택";
+            if (p5 === "-") p5 = "선택";
+            if (p6 === "-") p6 = "선택";
+            if (p7 === "-") p7 = "선택";
+        } else if (dayOfWeek === 2 || dayOfWeek === 4) { 
+            // 화요일, 목요일: 1~7교시 중 빈값을 '선택'으로 변경
+            if (p1 === "-") p1 = "선택";
+            if (p2 === "-") p2 = "선택";
+            if (p3 === "-") p3 = "선택";
+            if (p4 === "-") p4 = "선택";
+            if (p5 === "-") p5 = "선택";
+            if (p6 === "-") p6 = "선택";
+            if (p7 === "-") p7 = "선택";
+        } else if (dayOfWeek === 3 || dayOfWeek === 5) { 
+            // 수요일, 금요일: 1~6교시 중 빈값을 '선택'으로 변경 (7교시는 건드리지 않음)
+            if (p1 === "-") p1 = "선택";
+            if (p2 === "-") p2 = "선택";
+            if (p3 === "-") p3 = "선택";
+            if (p4 === "-") p4 = "선택";
+            if (p5 === "-") p5 = "선택";
+            if (p6 === "-") p6 = "선택";
+        }
+
+        // 4. 개별 코딩 방식으로 한 줄씩 화면을 출력합니다.
         table.innerHTML = `
             <div class="item" id="period-1">
                 <span class="period">1교시</span>
@@ -153,7 +180,6 @@ async function loadTimetable() {
     } catch (error) {
         console.error(error);
         if (targetYmd === getFormattedYmd(currentDate)) {
-            // 에러 시에도 반복문 없이 1~7교시 틀을 명확하게 한 칸씩 렌더링
             table.innerHTML = `
                 <div class="item"><span class="period">1교시</span><span class="subject">-</span></div>
                 <div class="item"><span class="period">2교시</span><span class="subject">-</span></div>
@@ -214,7 +240,7 @@ async function loadMeals() {
             foods.forEach(food => {
                 if (food.trim()) {
                     const li = document.createElement("li");
-                    li.textContent = "🍲 " + food.trim();
+                    li.textContent = "🍚 " + food.trim();
                     ul.appendChild(li);
                 }
             });
