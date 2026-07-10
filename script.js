@@ -327,6 +327,27 @@ if (datePicker) {
     });
 }
 
+// 실시간 시계 기능 (시:분 표시)
+function updateClock() {
+    const now = new Date();
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+
+    // 한 자리 수일 때 앞에 0을 붙여주는 작업 (예: 9시 -> 09시)
+    hours = hours < 10 ? '0' + hours : hours;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+
+    // 화면에 시계 반영 (초 제외)
+    const clockElement = document.getElementById('live-clock');
+    if (clockElement) {
+        clockElement.innerText = `${hours}:${minutes}`;
+    }
+}
+
+// 페이지가 켜지자마자 시계를 실행하고, 이후 1초마다 확인
+updateClock();
+setInterval(updateClock, 1000);
+
 // -------------------------------
 // 최초 앱 실행
 // -------------------------------
