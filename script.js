@@ -4,7 +4,7 @@
 // ===============================
 
 // 💎 나이스에서 발급받은 인증키를 따옴표 안에 넣어주세요!
-const API_KEY = "55a6304ce0b141288aa279f1f788fe14"; 
+const API_KEY = "KEY"; 
 
 // 학교 정보 (대전지족고등학교)
 const OFFICE_CODE = "G10";   // 대전광역시교육청
@@ -58,7 +58,7 @@ function updateDateDisplay() {
 }
 
 // -------------------------------
-// [신규] 학사일정 API 연동 및 방학 여부 체크 함수
+// [수정] 학사일정 API 연동 및 방학 여부 체크 함수 (방학식 예외 처리 반영)
 // -------------------------------
 async function checkVacation(targetYmd) {
     const url = `https://open.neis.go.kr/hub/SchoolSchedule?KEY=${API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&AA_YMD=${targetYmd}`;
@@ -70,11 +70,17 @@ async function checkVacation(targetYmd) {
         if (data && data.SchoolSchedule && data.SchoolSchedule[1] && data.SchoolSchedule[1].row) {
             const rows = data.SchoolSchedule[1].row;
             
-            // 💎 '설명회', '상담', '연수' 등 불필요한 데이터를 제외하고 '방학' 단어만 정확히 골라냅니다.
+            // 💎 '방학'이 포함되되, 당일 등교하는 '방학식'과 불필요한 키워드는 제외합니다.
             const hasVacation = rows.some(row => {
                 const name = row.EVENT_NM;
+                
+                // 1. 설명회, 상담, 연수 등 불필요한 낚시성 데이터 걸러내기
                 const isTrash = name.includes("설명회") || name.includes("상담") || name.includes("연수");
-                return name.includes("방학") && !isTrash;
+                
+                // 2. '방학식' 당일은 학교에 가므로 진짜 방학 상태(수업/급식 없음)에서 제외
+                const isVacationCeremony = name.includes("방학식");
+                
+                return name.includes("방학") && !isVacationCeremony && !isTrash;
             });
             
             return hasVacation;
@@ -97,7 +103,7 @@ async function refreshDashboardData() {
     const lunchContainer = document.getElementById("mealLunch");
     const dinnerContainer = document.getElementById("mealDinner");
 
-    // 1. 방학 여부를 우선적으로 확인
+    // 1. 방학 여부를 우선적으로 확인 (방학식날은 false가 반환되어 정상 학기 로직으로 감)
     const isVacation = await checkVacation(targetYmd);
     
     // 비동기 통신 도중 사용자가 날짜를 바꿨을 때를 대비한 방어코드
@@ -108,7 +114,7 @@ async function refreshDashboardData() {
         if (table) {
             table.innerHTML = `
                 <div class="vacation-mode" style="text-align:center; padding: 50px 20px; font-weight:bold; color:#2b6cb0; font-size:18px; line-height:1.6;">
-                    🏖️ 신나는 방학 기간입니다!<br>
+                    🏫 방학 기간입니다!<br>
                     <span style="font-size:14px; color:#718096; font-weight:normal;">정규 수업이 없는 날입니다.</span>
                 </div>
             `;
@@ -116,7 +122,7 @@ async function refreshDashboardData() {
         if (lunchContainer) lunchContainer.innerHTML = `<div class="loading">방학 중에는 급식이 없습니다. 😎</div>`;
         if (dinnerContainer) dinnerContainer.innerHTML = `<div class="loading">방학 중에는 급식이 없습니다. 😎</div>`;
     } else {
-        // ✍️ 정상 학기 중일 때는 기존 로직 작동
+        // ✍️ 정상 학기 및 방학식 당일일 때는 기존 로직 작동
         loadTimetable();
         loadMeals();
     }
