@@ -58,12 +58,68 @@ function updateDateDisplay() {
 }
 
 // -------------------------------
-// 데이터 새로고침
+// [신규] 학사일정 API 연동 및 방학 여부 체크 함수
 // -------------------------------
-function refreshDashboardData() {
+async function checkVacation(targetYmd) {
+    const url = `https://open.neis.go.kr/hub/SchoolSchedule?KEY=${API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&AA_YMD=${targetYmd}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.SchoolSchedule && data.SchoolSchedule[1] && data.SchoolSchedule[1].row) {
+            const rows = data.SchoolSchedule[1].row;
+            
+            // 💎 '설명회', '상담', '연수' 등 불필요한 데이터를 제외하고 '방학' 단어만 정확히 골라냅니다.
+            const hasVacation = rows.some(row => {
+                const name = row.EVENT_NM;
+                const isTrash = name.includes("설명회") || name.includes("상담") || name.includes("연수");
+                return name.includes("방학") && !isTrash;
+            });
+            
+            return hasVacation;
+        }
+        return false;
+    } catch (error) {
+        console.error("학사일정 조회 실패:", error);
+        return false;
+    }
+}
+
+// -------------------------------
+// 데이터 새로고침 (방학 분기 처리 로직 도입)
+// -------------------------------
+async function refreshDashboardData() {
     updateDateDisplay();
-    loadTimetable();
-    loadMeals();
+    
+    const targetYmd = getFormattedYmd(currentDate);
+    const table = document.getElementById("timetable");
+    const lunchContainer = document.getElementById("mealLunch");
+    const dinnerContainer = document.getElementById("mealDinner");
+
+    // 1. 방학 여부를 우선적으로 확인
+    const isVacation = await checkVacation(targetYmd);
+    
+    // 비동기 통신 도중 사용자가 날짜를 바꿨을 때를 대비한 방어코드
+    if (targetYmd !== getFormattedYmd(currentDate)) return;
+
+    if (isVacation) {
+        // 🏖️ 학사일정상 방학일 때의 UI 처리
+        if (table) {
+            table.innerHTML = `
+                <div class="vacation-mode" style="text-align:center; padding: 50px 20px; font-weight:bold; color:#2b6cb0; font-size:18px; line-height:1.6;">
+                    🏖️ 신나는 방학 기간입니다!<br>
+                    <span style="font-size:14px; color:#718096; font-weight:normal;">정규 수업이 없는 날입니다.</span>
+                </div>
+            `;
+        }
+        if (lunchContainer) lunchContainer.innerHTML = `<div class="loading">방학 중에는 급식이 없습니다. 😎</div>`;
+        if (dinnerContainer) dinnerContainer.innerHTML = `<div class="loading">방학 중에는 급식이 없습니다. 😎</div>`;
+    } else {
+        // ✍️ 정상 학기 중일 때는 기존 로직 작동
+        loadTimetable();
+        loadMeals();
+    }
 }
 
 // -------------------------------
@@ -95,11 +151,13 @@ async function loadTimetable() {
         // 1. 교시별 기본값을 없음을 뜻하는 "-" 로 세팅
         let p1 = "-", p2 = "-", p3 = "-", p4 = "-", p5 = "-", p6 = "-", p7 = "-";
 
-        // 2. API 데이터 매핑
+        // 2. API 데이터 매핑 (문자열 정제 안전장치 포함)
         if (data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row) {
             const rows = data.hisTimetable[1].row;
             rows.forEach(subject => {
-                const period = parseInt(subject.PERIO);
+                // 💎 "1교시" 등 텍스트 유입 시 숫자만 강제 추출하여 p1 누락 방지
+                const perioStr = String(subject.PERIO).replace(/[^0-9]/g, '');
+                const period = parseInt(perioStr);
                 const name = subject.ITRT_CNTNT; // 과목명
                 
                 if (period === 1) p1 = name;
@@ -112,15 +170,13 @@ async function loadTimetable() {
             });
         }
 
-        // 3. ✨ [핵심] 요일별 빈값(" - ") 처리 로직 정의
-        // [수정] API에서 가져온 데이터가 진짜로 존재할 때만 '선택과목' 매핑을 실행합니다.
-        // 데이터가 아예 없다면(0개) 공휴일, 재량휴업일, 방학이므로 "-" 상태를 유지합니다.
+        // 3. ✨ 요일별 빈값(" - ") 처리 로직 정의
         const hasData = data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row && data.hisTimetable[1].row.length > 0;
 
         if (hasData) {
-            // 3. ✨ 요일별 빈값(" - ") 처리 로직 (정상 수업일에만 작동)
             if (dayOfWeek === 1) { 
-                // 월요일: 2~7교시 중 빈값을 '선택과목'으로 변경
+                // 월요일: 1~7교시 중 빈값을 '선택과목'으로 변경 (1교시 세팅 안정화 포함)
+                if (p1 === "-") p1 = "선택과목";
                 if (p2 === "-") p2 = "선택과목";
                 if (p3 === "-") p3 = "선택과목";
                 if (p4 === "-") p4 = "선택과목";
@@ -146,41 +202,19 @@ async function loadTimetable() {
                 if (p6 === "-") p6 = "선택과목";
             }
         } else {
-            // 방학이나 공휴일이어서 나이스 데이터가 아예 없을 때, 
-            // 단정하게 "수업 없음"이나 "공휴일/방학" 등으로 표시하고 싶다면 아래 주석을 해제하고 사용하세요!
+            // 정규 일정 데이터가 없는데 checkVacation에서 안 걸러진 공휴일/재량휴업일 처리
             p1 = "수업 없음"; p2 = "-"; p3 = "-"; p4 = "-"; p5 = "-"; p6 = "-"; p7 = "-";
         }
 
         // 4. 개별 코딩 방식으로 한 줄씩 화면을 출력합니다.
         table.innerHTML = `
-            <div class="item" id="period-1">
-                <span class="period">1교시</span>
-                <span class="subject">${p1}</span>
-            </div>
-            <div class="item" id="period-2">
-                <span class="period">2교시</span>
-                <span class="subject">${p2}</span>
-            </div>
-            <div class="item" id="period-3">
-                <span class="period">3교시</span>
-                <span class="subject">${p3}</span>
-            </div>
-            <div class="item" id="period-4">
-                <span class="period">4교시</span>
-                <span class="subject">${p4}</span>
-            </div>
-            <div class="item" id="period-5">
-                <span class="period">5교시</span>
-                <span class="subject">${p5}</span>
-            </div>
-            <div class="item" id="period-6">
-                <span class="period">6교시</span>
-                <span class="subject">${p6}</span>
-            </div>
-            <div class="item" id="period-7">
-                <span class="period">7교시</span>
-                <span class="subject">${p7}</span>
-            </div>
+            <div class="item" id="period-1"><span class="period">1교시</span><span class="subject">${p1}</span></div>
+            <div class="item" id="period-2"><span class="period">2교시</span><span class="subject">${p2}</span></div>
+            <div class="item" id="period-3"><span class="period">3교시</span><span class="subject">${p3}</span></div>
+            <div class="item" id="period-4"><span class="period">4교시</span><span class="subject">${p4}</span></div>
+            <div class="item" id="period-5"><span class="period">5교시</span><span class="subject">${p5}</span></div>
+            <div class="item" id="period-6"><span class="period">6교시</span><span class="subject">${p6}</span></div>
+            <div class="item" id="period-7"><span class="period">7교시</span><span class="subject">${p7}</span></div>
         `;
 
     } catch (error) {
@@ -339,18 +373,15 @@ function updateClock() {
     let hours = now.getHours();
     let minutes = now.getMinutes();
 
-    // 한 자리 수일 때 앞에 0을 붙여주는 작업 (예: 9시 -> 09시)
     hours = hours < 10 ? '0' + hours : hours;
     minutes = minutes < 10 ? '0' + minutes : minutes;
 
-    // 화면에 시계 반영 (초 제외)
     const clockElement = document.getElementById('live-clock');
     if (clockElement) {
         clockElement.innerText = `${hours}:${minutes}`;
     }
 }
 
-// 페이지가 켜지자마자 시계를 실행하고, 이후 1초마다 확인
 updateClock();
 setInterval(updateClock, 1000);
 
