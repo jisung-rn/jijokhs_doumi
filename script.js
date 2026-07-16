@@ -58,7 +58,7 @@ function updateDateDisplay() {
 }
 
 // -------------------------------
-// [수정] 학사일정 API 연동 및 방학 여부 체크 함수 (방학식 예외 처리 반영)
+// 학사일정 API 연동 및 방학 여부 체크 함수 (방학식 예외 처리 반영)
 // -------------------------------
 async function checkVacation(targetYmd) {
     const url = `https://open.neis.go.kr/hub/SchoolSchedule?KEY=${API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${OFFICE_CODE}&SD_SCHUL_CODE=${SCHOOL_CODE}&AA_YMD=${targetYmd}`;
@@ -70,7 +70,7 @@ async function checkVacation(targetYmd) {
         if (data && data.SchoolSchedule && data.SchoolSchedule[1] && data.SchoolSchedule[1].row) {
             const rows = data.SchoolSchedule[1].row;
             
-            // 💎 '방학'이 포함되되, 당일 등교하는 '방학식'과 불필요한 키워드는 제외합니다.
+            // '방학'이 포함되되, 당일 등교하는 '방학식'과 불필요한 키워드는 제외합니다.
             const hasVacation = rows.some(row => {
                 const name = row.EVENT_NM;
                 
@@ -129,7 +129,7 @@ async function refreshDashboardData() {
 }
 
 // -------------------------------
-// 시간표 조회 (요일별 빈값 자동 매핑 구조 수정본)
+// 시간표 조회 (실제 등록 개수 기반 자동 단축 감지 + 화면 항시 유지 버전)
 // -------------------------------
 async function loadTimetable() {
     const table = document.getElementById("timetable");
@@ -141,7 +141,7 @@ async function loadTimetable() {
     const classNum = (classEl && classEl.value) ? classEl.value : "3";
     
     const targetYmd = getFormattedYmd(currentDate);
-    const dayOfWeek = currentDate.getDay(); // 1: 월요일, 2: 화요일, 3: 수요일, 4: 목요일, 5: 금요일
+    const dayOfWeek = currentDate.getDay(); // 1: 월요일, ..., 5: 금요일
 
     table.innerHTML = "<div class='loading'>시간표를 불러오는 중...</div>";
 
@@ -156,16 +156,22 @@ async function loadTimetable() {
 
         // 1. 교시별 기본값을 없음을 뜻하는 "-" 로 세팅
         let p1 = "-", p2 = "-", p3 = "-", p4 = "-", p5 = "-", p6 = "-", p7 = "-";
+        let maxPeriod = 0; // 오늘 나이스에 등록된 실제 최대 교시 (단축 수업 판단용)
 
-        // 2. API 데이터 매핑 (문자열 정제 안전장치 포함)
+        // 2. API 데이터 매핑 및 최대 교시 파악 (문자열 정제 안전장치 포함)
         if (data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row) {
             const rows = data.hisTimetable[1].row;
             rows.forEach(subject => {
-                // 💎 "1교시" 등 텍스트 유입 시 숫자만 강제 추출하여 p1 누락 방지
                 const perioStr = String(subject.PERIO).replace(/[^0-9]/g, '');
                 const period = parseInt(perioStr);
                 const name = subject.ITRT_CNTNT; // 과목명
                 
+                if (period >= 1 && period <= 7) {
+                    if (period > maxPeriod && name && name.trim() !== "") {
+                        maxPeriod = period; // 실제로 과목명이 등록된 가장 높은 교시 저장
+                    }
+                }
+
                 if (period === 1) p1 = name;
                 else if (period === 2) p2 = name;
                 else if (period === 3) p3 = name;
@@ -176,52 +182,49 @@ async function loadTimetable() {
             });
         }
 
-        // 3. ✨ [수정] 요일별 빈값(" - ") 자동 치환 세부 처리 로직
         const hasData = data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row && data.hisTimetable[1].row.length > 0;
 
         if (hasData) {
-            if (dayOfWeek === 1) { 
-                // 월요일: 2~7교시 중 빈값을 '선택과목'으로 변경
-                if (p2 === "-") p2 = "선택과목";
-                if (p3 === "-") p3 = "선택과목";
-                if (p4 === "-") p4 = "선택과목";
-                if (p5 === "-") p5 = "선택과목";
-                if (p6 === "-") p6 = "선택과목";
-                if (p7 === "-") p7 = "선택과목";
-            } else if (dayOfWeek === 2 || dayOfWeek === 4) { 
-                // 화요일, 목요일: 1~7교시 중 빈값을 '선택과목'으로 변경
-                if (p1 === "-") p1 = "선택과목";
-                if (p2 === "-") p2 = "선택과목";
-                if (p3 === "-") p3 = "선택과목";
-                if (p4 === "-") p4 = "선택과목";
-                if (p5 === "-") p5 = "선택과목";
-                if (p6 === "-") p6 = "선택과목";
-                if (p7 === "-") p7 = "선택과목";
-            } else if (dayOfWeek === 3) { 
-                // 수요일: 1~6교시 빈값은 '선택과목', 7교시 빈값은 '창체 (창의적 체험활동)'으로 자동 채움
-                if (p1 === "-") p1 = "선택과목";
-                if (p2 === "-") p2 = "선택과목";
-                if (p3 === "-") p3 = "선택과목";
-                if (p4 === "-") p4 = "선택과목";
-                if (p5 === "-") p5 = "선택과목";
-                if (p6 === "-") p6 = "선택과목";
-                if (p7 === "-") p7 = "창체"; // 수요일 7교시 창체/자치 매핑
-            } else if (dayOfWeek === 5) { 
-                // 금요일: 1~6교시 빈값은 '선택과목', 7교시 빈값은 '창체 (동아리/진로 등)'로 자동 채움
-                if (p1 === "-") p1 = "선택과목";
-                if (p2 === "-") p2 = "선택과목";
-                if (p3 === "-") p3 = "선택과목";
-                if (p4 === "-") p4 = "선택과목";
-                if (p5 === "-") p5 = "선택과목";
-                if (p6 === "-") p6 = "선택과목";
-                if (p7 === "-") p7 = "창체"; // 금요일 7교시 동아리/창체 매핑
+            // 원래 요일별 기준 길이와 나이스 실제 등록 최대 교시 비교
+            // 월, 화, 목요일의 기본 일과는 7교시 / 수, 금요일의 기본 일과는 6교시
+            const isNormalScheduleLength = 
+                ((dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4) && maxPeriod >= 7) ||
+                ((dayOfWeek === 3 || dayOfWeek === 5) && maxPeriod >= 6);
+
+            // 단축 수업이 아닐 때(정상 일과 길이일 때)만 빈 교시 치환 작동
+            if (isNormalScheduleLength) {
+                if (dayOfWeek === 1) { 
+                    // 월요일: 1교시 제외, 2~7교시 빈값 대체
+                    if (p2 === "-") p2 = "선택과목";
+                    if (p3 === "-") p3 = "선택과목";
+                    if (p4 === "-") p4 = "선택과목";
+                    if (p5 === "-") p5 = "선택과목";
+                    if (p6 === "-") p6 = "선택과목";
+                    if (p7 === "-") p7 = "선택과목";
+                } else if (dayOfWeek === 2 || dayOfWeek === 4) { 
+                    // 화요일, 목요일: 1~7교시 빈값 대체
+                    if (p1 === "-") p1 = "선택과목";
+                    if (p2 === "-") p2 = "선택과목";
+                    if (p3 === "-") p3 = "선택과목";
+                    if (p4 === "-") p4 = "선택과목";
+                    if (p5 === "-") p5 = "선택과목";
+                    if (p6 === "-") p6 = "선택과목";
+                    if (p7 === "-") p7 = "선택과목";
+                } else if (dayOfWeek === 3 || dayOfWeek === 5) { 
+                    // 수요일, 금요일: 1~6교시 빈값 대체 (7교시는 자동 치환 없이 원래 값 그대로 유지)
+                    if (p1 === "-") p1 = "선택과목";
+                    if (p2 === "-") p2 = "선택과목";
+                    if (p3 === "-") p3 = "선택과목";
+                    if (p4 === "-") p4 = "선택과목";
+                    if (p5 === "-") p5 = "선택과목";
+                    if (p6 === "-") p6 = "선택과목";
+                }
             }
         } else {
-            // 정규 일정 데이터가 없는데 checkVacation에서 안 걸러진 공휴일/재량휴업일 처리
             p1 = "수업 없음"; p2 = "-"; p3 = "-"; p4 = "-"; p5 = "-"; p6 = "-"; p7 = "-";
         }
 
-        // 4. 개별 코딩 방식으로 한 줄씩 화면을 출력합니다.
+        // 3. 화면 렌더링 (1~7교시 틀 항상 고정 출력)
         table.innerHTML = `
             <div class="item" id="period-1"><span class="period">1교시</span><span class="subject">${p1}</span></div>
             <div class="item" id="period-2"><span class="period">2교시</span><span class="subject">${p2}</span></div>
@@ -351,7 +354,7 @@ const prevBtn = document.getElementById("prevDateBtn");
 if (prevBtn) {
     prevBtn.addEventListener("click", () => {
         currentDate.setDate(currentDate.getDate() - 1);
-        adjustToWeekday(currentDate, -1); // 💎 토/일요일이면 금요일로 점프
+        adjustToWeekday(currentDate, -1); // 토/일요일이면 금요일로 점프
         refreshDashboardData();
     });
 }
@@ -361,13 +364,13 @@ const nextBtn = document.getElementById("nextDateBtn");
 if (nextBtn) {
     nextBtn.addEventListener("click", () => {
         currentDate.setDate(currentDate.getDate() + 1);
-        adjustToWeekday(currentDate, 1); // 💎 토/일요일이면 월요일로 점프
+        adjustToWeekday(currentDate, 1); // 토/일요일이면 월요일로 점프
         refreshDashboardData();
     });
 }
 
 // -----------------------------------------------------------
-// 💎 [크로스 플랫폼 최종본] 달력 날짜 변경 감지 및 데이터 동기화
+// 달력 날짜 변경 감지 및 데이터 동기화
 // -----------------------------------------------------------
 const datePicker = document.getElementById("datePicker");
 
