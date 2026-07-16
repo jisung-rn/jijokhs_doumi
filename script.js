@@ -129,7 +129,7 @@ async function refreshDashboardData() {
 }
 
 // -------------------------------
-// 시간표 조회 (요일별 빈값 '선택' 자동 매핑 구조)
+// 시간표 조회 (요일별 빈값 자동 매핑 구조 수정본)
 // -------------------------------
 async function loadTimetable() {
     const table = document.getElementById("timetable");
@@ -176,12 +176,12 @@ async function loadTimetable() {
             });
         }
 
-        // 3. ✨ 요일별 빈값(" - ") 처리 로직 정의
+        // 3. ✨ [수정] 요일별 빈값(" - ") 자동 치환 세부 처리 로직
         const hasData = data && data.hisTimetable && data.hisTimetable[1] && data.hisTimetable[1].row && data.hisTimetable[1].row.length > 0;
 
         if (hasData) {
             if (dayOfWeek === 1) { 
-                // 월요일: 2~7교시 중 빈값을 '선택과목'으로 변경 (1교시 세팅 안정화 포함)
+                // 월요일: 2~7교시 중 빈값을 '선택과목'으로 변경
                 if (p2 === "-") p2 = "선택과목";
                 if (p3 === "-") p3 = "선택과목";
                 if (p4 === "-") p4 = "선택과목";
@@ -197,14 +197,24 @@ async function loadTimetable() {
                 if (p5 === "-") p5 = "선택과목";
                 if (p6 === "-") p6 = "선택과목";
                 if (p7 === "-") p7 = "선택과목";
-            } else if (dayOfWeek === 3 || dayOfWeek === 5) { 
-                // 수요일, 금요일: 1~6교시 중 빈값을 '선택과목'으로 변경 (7교시는 그대로 "-" 유지)
+            } else if (dayOfWeek === 3) { 
+                // 수요일: 1~6교시 빈값은 '선택과목', 7교시 빈값은 '창체 (창의적 체험활동)'으로 자동 채움
                 if (p1 === "-") p1 = "선택과목";
                 if (p2 === "-") p2 = "선택과목";
                 if (p3 === "-") p3 = "선택과목";
                 if (p4 === "-") p4 = "선택과목";
                 if (p5 === "-") p5 = "선택과목";
                 if (p6 === "-") p6 = "선택과목";
+                if (p7 === "-") p7 = "창체"; // 수요일 7교시 창체/자치 매핑
+            } else if (dayOfWeek === 5) { 
+                // 금요일: 1~6교시 빈값은 '선택과목', 7교시 빈값은 '창체 (동아리/진로 등)'로 자동 채움
+                if (p1 === "-") p1 = "선택과목";
+                if (p2 === "-") p2 = "선택과목";
+                if (p3 === "-") p3 = "선택과목";
+                if (p4 === "-") p4 = "선택과목";
+                if (p5 === "-") p5 = "선택과목";
+                if (p6 === "-") p6 = "선택과목";
+                if (p7 === "-") p7 = "창체"; // 금요일 7교시 동아리/창체 매핑
             }
         } else {
             // 정규 일정 데이터가 없는데 checkVacation에서 안 걸러진 공휴일/재량휴업일 처리
